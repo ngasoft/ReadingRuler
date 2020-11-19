@@ -21,66 +21,99 @@ namespace ReadingRuler
             InitializeComponent();
         }
 
-        int padding = 10;
+        int padding = 16;
+        int right_padding = 16;
+        int min_height = 16;
         private void MainWindow_Load(object sender, EventArgs e)
         {
+            PaddingPanel.Left = 0;
+            PaddingPanel.Width = Width - right_padding; // - 1 * padding;
             GlassPanel.Left = padding;
-            GlassPanel.Width = Width - 4 * padding;
-        }
- 
-        private void MainWindow_Resize(object sender, EventArgs e)
-        {
-            GlassPanel.Left = padding;
-            GlassPanel.Width = Width - 4 * padding;
+            GlassPanel.Top = PaddingPanel.Top + padding;
+            GlassPanel.Height = PaddingPanel.Height - 2 * padding;
+            GlassPanel.Width = PaddingPanel.Width - 2 * padding;
         }
 
-        Boolean isResizingTop = false;
-        Boolean isResizingBot = false;
+        private void MainWindow_Resize(object sender, EventArgs e)
+        {
+            PaddingPanel.Left = 0;
+            PaddingPanel.Width = Width - right_padding; // - 1 * padding;
+            GlassPanel.Left = padding;
+            GlassPanel.Top = PaddingPanel.Top + padding;
+            GlassPanel.Height = PaddingPanel.Height - 2 * padding;
+            GlassPanel.Width = PaddingPanel.Width - 2 * padding;
+        }
+
+        Boolean isMouseDown = false;
         int lastX = 0;
         int lastY = 0;
         private void MainWindow_MouseDown(object sender, MouseEventArgs e)
         {
             lastX = e.X;
             lastY = e.Y;
-            if (GlassPanel.Top - lastY <= 20 && GlassPanel.Top - lastY >= 0)
-            {
-                isResizingTop = true;
-            }
-            else if (lastY - (GlassPanel.Top + GlassPanel.Height) <= 20 && lastY - (GlassPanel.Top + GlassPanel.Height) >= 0)
-            {
-                isResizingBot = true;
-            }
-            else
-            {
-                isResizingTop = true;
-                isResizingBot = true;
-            }
+            isMouseDown = true;
         }
 
 
 
         private void MainWindow_MouseUp(object sender, MouseEventArgs e)
         {
-            isResizingTop = false;
-            isResizingBot = false;
+            isMouseDown = false;
         }
 
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isResizingTop || isResizingBot)
+            if (isMouseDown)
             {
                 int delta = e.Y - lastY;
+                PaddingPanel.Top += delta;
+                GlassPanel.Top += delta;
+
+
                 lastX = e.X;
                 lastY = e.Y;
-                if (isResizingTop) GlassPanel.Top += delta;
-                if (!isResizingBot)
-                {
-                    GlassPanel.Height -= delta;
-                }
+
             }
-            
+
         }
 
+        private void PaddingPanel_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isMouseDown)
+            {
+                int delta = e.Y - lastY;
+
+
+                if (lastY > PaddingPanel.Height - padding)
+                {
+                    PaddingPanel.Height += delta;
+                    GlassPanel.Height += delta;
+                    if (GlassPanel.Height < min_height)
+                    {
+                        GlassPanel.Height = min_height;
+                        PaddingPanel.Height = GlassPanel.Height + 2 * padding;
+                    }
+                }
+
+                lastX = e.X;
+                lastY = e.Y;
+
+            }
+
+        }
+
+        private void MainWindow_Scroll(object sender, ScrollEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("Test");
+        }
+
+        protected override void OnMouseWheel(MouseEventArgs mea)
+        {
+            int delta = -mea.Delta * SystemInformation.MouseWheelScrollLines / 120;
+            PaddingPanel.Top += delta;
+            GlassPanel.Top += delta;
+            
+        }
 
     }
 }
